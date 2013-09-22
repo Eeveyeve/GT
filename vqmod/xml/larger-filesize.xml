@@ -1,0 +1,20 @@
+<modification>
+<id>Larger Filse size upload</id>
+<version>1.0.0</version>
+<vqmver>2.X</vqmver>
+<author>Vojtech Gintner</author>      
+
+
+<file name="asth24gf34m03f/controller/common/filemanager.php">
+ <operation>                
+  <search position="replace"><![CDATA[
+  if ($this->request->files['image']['size'] > 300000) {
+  ]]></search>
+                                  
+  <add><![CDATA[
+  if ($this->request->files['image']['size'] > 5000000) {
+  ]]></add>                        
+ </operation> 
+</file>
+  
+</modification>

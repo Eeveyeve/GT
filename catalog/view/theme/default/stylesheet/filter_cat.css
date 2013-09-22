@@ -1,0 +1,169 @@
+#filter-cat {
+    background: #f1f1f1;
+    padding: 14px 16px 8px 16px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+.filter-block h4 {
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 1px solid #d4d4d4;
+    line-height: 18px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+.top-close-block, .bot-close-block {
+    height: 20px;
+    cursor: pointer;
+}
+.top-close-block {
+    background:url("../image/top-close-block.png") no-repeat top center ;
+    margin-bottom: 5px;
+}
+.bot-close-block {
+    background:url("../image/bot-close-block.png") no-repeat top center ;
+    margin-top: 5px;
+}
+.body-block {
+    
+}
+.f-ssub {
+    padding-left: 10px;
+}
+.body-block label {
+    text-transform: uppercase;
+    font-size: 11px;
+    cursor: pointer;
+    line-height: 26px;
+    margin-left: 5px;
+    display: inline-block;
+    max-width: 180px;
+}
+.f-ssub label {
+    max-width: 160px;
+}
+.ui-radio-state-disabled,
+.ui-radio-state-checked-disabled,
+.ui-radio-state-disabled-hover,
+.ui-radio-state-checked-disabled-hover {
+	color: #999;
+}
+span.ui-checkbox,
+span.ui-radio {
+	display: block;
+	float: left;
+	width: 20px;
+	height: 20px;
+	background:url("../image/icon_checkbox.png")  0 -43px no-repeat;
+}
+span.ui-helper-hidden {
+	display: none;
+}
+label {
+	padding: 2px;
+	
+}
+span.ui-radio-state-hover,
+span.ui-checkbox-state-hover {
+	background-position: 0 -117px;
+}
+
+span.ui-checkbox-state-checked {
+	background-position: 0 0px;
+}
+
+span.ui-checkbox-state-checked-hover {
+	background-position: 0 -75px;
+}
+span.ui-radio-state-checked-disabled-hover,
+span.ui-radio-state-checked-disabled,
+span.ui-radio-state-checked {
+	background-position: 0 -161px;
+}
+
+
+span.ui-radio-state-checked-hover {
+	background-position: 0 -200px;
+}
+.ui-helper-hidden-accessible {
+	position: absolute;
+	left: -999em;
+}
+
+#cat-filter {
+    height: 44px;
+    line-height: 44px;
+    padding: 0 17px 0 17px;
+    background: #6bb1ed;
+}
+#cat-filter select {
+    width: 130px;
+    color: #7a7a7a;
+    font-size: 15px;
+    font-family: "CenturyGothic";
+}
+#cat-filter select + select {
+    margin-left: 10px;
+}
+#cat-filter input {
+    width: 52px;
+    height: 21px;
+    text-align: center;
+    font-size: 15px;
+    color: #7d7d7d;
+    font-family: "CenturyGothic";
+    margin-left: 10px;
+    padding: 0;
+}
+#cat-filter .right {
+    width: 218px;
+    float: right;
+    color: white;
+    font-size: 15px;
+    font-family: "CenturyGothic";
+    text-align: right;
+}
+.product-filter {
+    height: 25px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.product-filter .sort, #f-clear {
+    float: right;
+}
+#f-clear {
+    cursor: pointer;
+}
+#f-count {
+     width: 50%;
+     float: left;
+}
+#filter-data {
+    color: #5e5c5c;
+    font-size: 12px;
+    font-family: "CenturyGothic";
+}
+#filter-result > div {
+    display: inline-block;
+    margin-bottom: 15px;
+    margin-right: 20px;
+    vertical-align: top;
+    width: 130px;
+}
+.p-filter span{
+    font-size: 11px;
+}
+.p-filter input {
+    width: 30px;
+    margin-left: 5px;
+    height: 15px;
+    line-height: 15px;
+    padding: 1px;
+    text-align: center;
+}
+.p-filter #slider-range {
+    margin: 10px 0 10px 0;
+}
+.ui-checkbox-state-checked-disabled, .ui-checkbox-state-checked-disabled-hover {
+    background-position: 0 0 !important;
+}

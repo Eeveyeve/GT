@@ -1,0 +1,747 @@
+<modification>
+	<id><![CDATA[AccCombine module for openCart]]></id>
+	<version><![CDATA[1.3.0220]]></version>
+	<vqmver><![CDATA[2.1.7]]></vqmver>
+	<author><![CDATA[YP]]></author>
+<file name="asth24gf34m03f/controller/sale/affiliate.php">
+		<operation>
+			<search position="replace" index="1"><![CDATA[$this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm]]></search>
+			<add><![CDATA[$this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateAcccInsert() && $this->validateForm]]></add>
+		</operation>
+		<operation>
+			<search position="after" index="1"><![CDATA[model_sale_affiliate->addAffiliate]]></search>
+			<add><![CDATA[
+			//+mod by yp start			
+			if($this->config->get('account_combine_status')) {
+				$_accc_aff = $this->model_sale_affiliate->getAffiliateByEmail($this->request->post['email']);
+				if($_accc_aff) {
+					$customer = $this->model_sale_customer->getCustomerByEmail($this->request->post['email']);
+					if(!$customer || !sizeof($customer)) {
+						$this->model_sale_account_combine->addCustomerFromAffiliate($_accc_aff);
+					} else {
+						$this->model_sale_account_combine->linkCustomerAffiliate($customer['customer_id'], $_accc_aff['affiliate_id']);
+					}			
+				}
+			}
+			//+mod by yp end
+]]></add>
+		</operation>		
+		<operation>
+			<search position="before"><![CDATA[function validateForm]]></search>
+			<add><![CDATA[
+	//+mod by yp start
+	private function validateAcccInsert() {
+		if(!$this->config->get('account_combine_status')) return true;
+		$this->load->model('sale/customer');
+		$this->load->model('sale/account_combine');
+		$customer = $this->model_sale_customer->getCustomerByEmail($this->request->post['email']);
+		if(!$customer || !sizeof($customer)) return true;
+		$existing_aff_id = $this->model_sale_account_combine->getAffiliateIdByCustomerId($customer['customer_id']);
+		
+		if($existing_aff_id) {
+			$this->language->load('module/account_combine');
+			$this->error['warning'] = sprintf($this->language->get('error_customer_has_affiliate'), $customer['email']);
+		}
+		
+		if (!$this->error) {
+	  		return true;
+		} else {
+	  		return false;
+		}	
+	}
+	//+mod by yp end
+]]></add>
+		</operation>
+	</file>		
+<file name="asth24gf34m03f/model/sale/affiliate.php">
+		<operation error="log">
+			<search position="after"><![CDATA[function deleteAffiliate]]></search>
+			<add><![CDATA[
+		if($this->config->get('account_combine_status')) $this->db->query("DELETE FROM " . DB_PREFIX . "accc_customer_affiliate WHERE affiliate_id = '" . (int)$affiliate_id . "'");//+mod by yp
+]]></add>
+		</operation>
+	</file>	
+<file name="asth24gf34m03f/model/sale/customer.php">
+		<operation error="log">
+			<search position="after"><![CDATA[function deleteCustomer]]></search>
+			<add><![CDATA[	
+		//+mod by yp start
+		if($this->config->get('account_combine_status')) {
+			$accc_res = $this->db->query("SELECT affiliate_id FROM " . DB_PREFIX . "accc_customer_affiliate WHERE customer_id = '" . (int)$customer_id . "'");
+			if($accc_res->num_rows > 0) {
+				$this->load->model('sale/affiliate');	$this->model_sale_affiliate->deleteAffiliate($accc_res->row['affiliate_id']);
+			}
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/account/forgotten.php">
+		<operation error="log">
+			<search position="after"><![CDATA[editPassword]]></search>
+			<add><![CDATA[
+//+mod by yp start
+if($this->config->get('account_combine_status')) {	
+	$_carr = $this->model_account_customer->getCustomers(array('filter_email' => $this->request->post['email']));
+	$customer = $_carr && isset($_carr[0]['customer_id']) ? $_carr[0] : false;
+	//$customer = $this->model_account_customer->getCustomerByEmail($this->request->post['email']);
+	if($customer) {		
+		$this->load->model('affiliate/account_combine');
+		$affiliate = $this->model_affiliate_account_combine->getAffiliateByCustomerId($customer['customer_id']);
+		if($affiliate) {
+			$this->load->model('affiliate/affiliate');
+			$this->model_affiliate_affiliate->editPassword($affiliate['email'], $password);	
+		}
+	}
+}
+//+mod by yp end  
+
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/account/login.php">
+		<operation error="log">
+			<search position="after"><![CDATA[customer->logout]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status') && $this->affiliate->isLogged()) $this->affiliate->logout();//+mod by yp
+]]></add>
+		</operation>
+		<operation error="log">
+			<search position="after"><![CDATA[$customer_info && $this->customer->login($customer_info['email'], '', true]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->getId());//+mod by yp			
+]]></add>
+		</operation>	
+		<operation error="log">
+			<search position="after"><![CDATA[(!$this->error) {]]></search>
+			<add><![CDATA[
+			//+mod by yp start
+			if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->getId());
+			if(isset($this->session->data['accc_show_aff_section'])) unset($this->session->data['accc_show_aff_section']);
+			//+mod by yp end
+]]></add>
+		</operation>		
+	</file>
+<file name="catalog/controller/account/logout.php">	
+		<operation error="log">
+			<search position="after"><![CDATA[cart->clear]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status') && $this->affiliate->isLogged()) $this->affiliate->logout();//+mod by yp	
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/account/password.php">	
+		<operation>
+			<search position="after"><![CDATA[editPassword]]></search>
+			<add><![CDATA[
+			
+//+mod by yp start
+if($this->config->get('account_combine_status') && $this->affiliate->isLogged()) {	
+	$this->load->model('affiliate/affiliate');
+	$this->model_affiliate_affiliate->editPassword($this->affiliate->getEmail(), $this->request->post['password']);	
+}
+//+mod by yp end  
+	
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/account/register.php">
+		<operation>
+			<search position="after"><![CDATA[customer->login]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->isLogged());//+mod by yp
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[$this->redirect($this->url->link('account/success')]]></search>
+			<add><![CDATA[
+			//+mod by yp start
+			if($this->config->get('account_combine_status')) {
+				$customer_id = $this->customer->getId();
+				if($customer_id && !$this->affiliate->isLogged() && isset($this->request->post['accc_create_affiliate_account']) && $this->request->post['accc_create_affiliate_account']) {
+					$this->load->model('affiliate/account_combine');
+					$account_status = $this->model_affiliate_account_combine->getAccountStatus($customer_id);			
+					if($account_status === 'no_account') {
+						$affiliate_id = $this->model_affiliate_account_combine->addAffiliateFromCustomer($customer_id, $this->request->post);
+						if($affiliate_id && $this->affiliate->login('', '', $customer_id)) $this->redirect($this->config->get('account_combine_affiliate_autoapprove') ? $this->url->link('affiliate/account', '', 'SSL') : $this->url->link('affiliate/account_combine', '', 'SSL'));
+					}
+				}
+			}
+			//+mod by yp end
+]]></add>
+		</operation>		
+		<operation>
+			<search position="before"><![CDATA[file_exists(DIR_TEMPLATE]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		$this->data['show_affiliate_section'] = 0;
+		if($this->config->get('account_combine_status')) {
+			$this->language->load('affiliate/register');
+			$this->language->load('affiliate/account_combine');
+			$this->data['show_affiliate_section'] = 1;
+			if (isset($this->request->post['accc_create_affiliate_account'])) {
+				$this->data['accc_create_affiliate_account'] = $this->request->post['accc_create_affiliate_account'];				
+			} else {
+				if(isset($this->session->data['accc_show_aff_section'])) {
+					$this->data['accc_create_affiliate_account'] = 1;
+					unset($this->session->data['accc_show_aff_section']);
+				} else {
+					$this->data['accc_create_affiliate_account'] = isset($this->session->data['redirect']) && $this->session->data['redirect'] == $this->url->link('affiliate/account', '', 'SSL') ? 1 : 0;
+				}
+			}
+			$this->data['text_affiliate_information'] = $this->language->get('text_affiliate_information');
+			$this->data['text_affiliate_checkbox_confirm'] = $this->language->get('text_affiliate_checkbox_confirm');
+						
+			$this->data['text_cheque'] = $this->language->get('text_cheque');
+			$this->data['text_paypal'] = $this->language->get('text_paypal');
+			$this->data['text_bank'] = $this->language->get('text_bank');
+			$this->data['entry_website'] = $this->language->get('entry_website');
+			$this->data['entry_tax'] = $this->language->get('entry_tax');
+			$this->data['entry_payment'] = $this->language->get('entry_payment');
+			$this->data['entry_cheque'] = $this->language->get('entry_cheque');
+			$this->data['entry_paypal'] = $this->language->get('entry_paypal');
+			$this->data['entry_bank_name'] = $this->language->get('entry_bank_name');
+			$this->data['entry_bank_branch_number'] = $this->language->get('entry_bank_branch_number');
+			$this->data['entry_bank_swift_code'] = $this->language->get('entry_bank_swift_code');
+			$this->data['entry_bank_account_name'] = $this->language->get('entry_bank_account_name');
+			$this->data['entry_bank_account_number'] = $this->language->get('entry_bank_account_number');			
+
+			if (isset($this->request->post['website'])) {
+				$this->data['website'] = $this->request->post['website'];
+			} else {
+				$this->data['website'] = '';
+			}			
+
+			if (isset($this->request->post['payment'])) {
+				$this->data['payment'] = $this->request->post['payment'];
+			} else {
+				$this->data['payment'] = 'cheque';
+			}
+
+			if (isset($this->request->post['cheque'])) {
+				$this->data['cheque'] = $this->request->post['cheque'];
+			} else {
+				$this->data['cheque'] = '';
+			}
+
+			if (isset($this->request->post['tax'])) {
+				$this->data['tax'] = $this->request->post['tax'];
+			} else {
+				$this->data['tax'] = '';
+			}
+
+			if (isset($this->request->post['paypal'])) {
+				$this->data['paypal'] = $this->request->post['paypal'];
+			} else {
+				$this->data['paypal'] = '';
+			}
+
+			if (isset($this->request->post['bank_name'])) {
+				$this->data['bank_name'] = $this->request->post['bank_name'];
+			} else {
+				$this->data['bank_name'] = '';
+			}
+
+			if (isset($this->request->post['bank_branch_number'])) {
+				$this->data['bank_branch_number'] = $this->request->post['bank_branch_number'];
+			} else {
+				$this->data['bank_branch_number'] = '';
+			}
+
+			if (isset($this->request->post['bank_swift_code'])) {
+				$this->data['bank_swift_code'] = $this->request->post['bank_swift_code'];
+			} else {
+				$this->data['bank_swift_code'] = '';
+			}
+
+			if (isset($this->request->post['bank_account_name'])) {
+				$this->data['bank_account_name'] = $this->request->post['bank_account_name'];
+			} else {
+				$this->data['bank_account_name'] = '';
+			}
+		
+			if (isset($this->request->post['bank_account_number'])) {
+				$this->data['bank_account_number'] = $this->request->post['bank_account_number'];
+			} else {
+				$this->data['bank_account_number'] = '';
+			}			
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>	
+<file name="catalog/controller/affiliate/account.php">
+		<operation error="log">
+			<search position="after"><![CDATA[affiliate->isLogged]]></search>
+			<add><![CDATA[
+			//+mod by yp start
+			if ($this->config->get('account_combine_status') && $this->customer->isLogged()) {			
+				$this->redirect($this->url->link('affiliate/account_combine', '', 'SSL'));
+			}		
+			//+mod by yp end
+]]></add>
+		</operation>
+	</file>	
+<file name="catalog/controller/affiliate/forgotten.php">
+		<operation error="log">
+			<search position="before" index="1"><![CDATA[$this->language->load('affiliate/forgotten');]]></search>
+			<add><![CDATA[
+if ($this->config->get('account_combine_status')) $this->redirect($this->url->link('account/forgotten', '', 'SSL'));//+mod by yp
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/affiliate/login.php">
+		<operation>
+			<search position="before" index="1"><![CDATA[$this->language->load('affiliate/login');]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if ($this->config->get('account_combine_status')) {
+			if($this->customer->isLogged()) {
+				$this->redirect($this->url->link('affiliate/account_combine', '', 'SSL'));
+			}		
+			$this->session->data['redirect'] = $this->url->link('affiliate/account', '', 'SSL');
+			$this->session->data['accc_show_aff_section'] = true;
+			$this->redirect($this->url->link('account/login', '', 'SSL'));
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/affiliate/logout.php">
+		<operation error="log">
+			<search position="after" index="1"><![CDATA[function index]]></search>
+			<add><![CDATA[
+if ($this->config->get('account_combine_status')) $this->redirect($this->url->link('account/logout', '', 'SSL'));//+mod by yp
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/affiliate/password.php">
+		<operation error="log">
+			<search position="before" index="1"><![CDATA[$this->language->load('affiliate/password');]]></search>
+			<add><![CDATA[
+if ($this->config->get('account_combine_status')) $this->redirect($this->url->link('account/password', '', 'SSL'));//+mod by yp
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/affiliate/register.php">
+		<operation>
+			<search position="before" index="1"><![CDATA[$this->language->load('affiliate/register');]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if ($this->config->get('account_combine_status')) {
+			if($this->customer->isLogged()) {
+				$this->redirect($this->url->link('affiliate/account_combine', '', 'SSL'));
+			}
+			$this->session->data['redirect'] = $this->url->link('affiliate/account', '', 'SSL');
+			$this->session->data['accc_show_aff_section'] = true;
+			$this->redirect($this->url->link('account/register', '', 'SSL'));
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>
+<file name="catalog/controller/affiliate/transaction.php">
+		<operation>
+			<search position="before"><![CDATA[$this->data['continue']]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		$this->data['accc_allow_funds_transfer'] = false;
+		if($this->config->get('account_combine_status') && $this->config->get('account_combine_allow_funds_transfer')) {			
+			$_balance = $this->model_affiliate_transaction->getBalance();
+			if($_balance > 0) {
+				$this->language->load('affiliate/account_combine');
+				$this->data['accc_allow_funds_transfer'] = true;
+				$this->data['balance_raw'] = $this->currency->convert($_balance, $this->config->get('config_currency'),  $this->currency->getCode());			
+				$this->data['action_funds_transfer'] = $this->url->link('affiliate/account_combine/transaction', '', 'SSL');
+				$this->data['entry_funds_transfer_input'] = sprintf($this->language->get('entry_funds_transfer_input'), $this->data['balance']);
+				$this->data['symbol_left'] = $this->currency->getSymbolLeft();
+				$this->data['symbol_right'] = $this->currency->getSymbolRight();
+				$this->data['button_funds_transfer'] = $this->language->get('button_funds_transfer');
+				$this->data['error_invalid_transfer_amount'] = $this->language->get('error_invalid_transfer_amount');				
+				$this->data['error_invalid_transfer_amount_js'] = addcslashes(str_replace(array("\r\n", "\n", "\r"), array(' ', ' ', ' '), strip_tags(html_entity_decode($this->data['error_invalid_transfer_amount'], ENT_COMPAT))), "'");
+				$this->data['credit_amount_message'] = addcslashes(str_replace(array("\r\n", "\n", "\r"), array(' ', ' ', ' '), $this->language->get('text_credit_amount_message')), "'");
+				$this->data['transfer_multiplier'] = $this->config->get('account_combine_transfer_multiplier') ? $this->config->get('account_combine_transfer_multiplier') : 1;
+				$this->data['use_multiplier'] = (float) $this->data['transfer_multiplier'] === 1.0 ? false : true;
+				
+			}		
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>	
+<file name="catalog/controller/checkout/login.php">
+		<operation error="log">
+			<search position="before"><![CDATA[unset($this->session->data['guest']]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->getId());//+mod by yp
+]]></add>
+		</operation>
+	</file>	
+<file name="catalog/controller/checkout/manual.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[customer->login]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->isLogged());//+mod by yp
+]]></add>
+		</operation>
+		<operation error="skip">
+			<search position="after"><![CDATA[customer->logout]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status') && $this->affiliate->isLogged()) $this->affiliate->logout();//+mod by yp
+]]></add>
+		</operation>		
+	</file>
+<file name="catalog/controller/checkout/register.php">
+		<operation error="log">
+			<search position="after"><![CDATA[customer->login]]></search>
+			<add><![CDATA[
+if($this->config->get('account_combine_status')) $this->affiliate->login('', '', $this->customer->isLogged());//+mod by yp
+]]></add>
+		</operation>
+	</file>	
+<file name="catalog/controller/module/account.php">
+		<operation error="log">
+			<search position="before"><![CDATA[file_exists(DIR_TEMPLATE]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if($this->config->get('account_combine_status')) {			
+			$this->language->load('affiliate/account_combine');
+			if($this->affiliate->isLogged()) {
+				$this->data['text_link_to_affiliate'] = $this->language->get('text_link_to_affiliate_in_customer');
+				$this->data['link_to_affiliate'] = $this->url->link('affiliate/account', '', 'SSL');			
+			} else {
+				$this->data['link_to_affiliate'] = $this->url->link('affiliate/account_combine', '', 'SSL');
+				$customer_id = $this->customer->isLogged();
+				if($customer_id) {
+					$this->load->model('affiliate/account_combine');
+					$_aff_status = $this->model_affiliate_account_combine->getAccountStatus($customer_id);
+					if($_aff_status === true) {
+						$this->data['text_link_to_affiliate'] = $this->language->get('text_link_to_affiliate_in_customer');
+					} else {
+						$_map = array(
+							'no_account' => 'text_link_to_create_affiliate_in_customer',
+							'not_approved' => 'text_link_to_affiliate_not_approved_in_customer',
+							'disabled' => 'text_link_to_affiliate_disabled_in_customer'
+						);
+						$this->data['text_link_to_affiliate'] = isset($_map[$_aff_status]) ? $this->language->get($_map[$_aff_status]) : '';
+					}
+				} else {
+					$this->data['text_link_to_affiliate'] = '';
+				}
+			}
+		} else {
+			$this->data['text_link_to_affiliate'] = '';
+			$this->data['link_to_affiliate'] = '';
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>		
+<file name="catalog/controller/module/affiliate.php">
+		<operation error="log">
+			<search position="before"><![CDATA[file_exists(DIR_TEMPLATE]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if($this->config->get('account_combine_status')) {
+			$this->language->load('affiliate/account_combine');
+			$this->data['text_link_to_customer'] = $this->language->get('text_link_to_customer_in_affiliate');
+			$this->data['link_to_customer'] = $this->url->link('account/account', '', 'SSL');
+		} else {
+			$this->data['text_link_to_customer'] = '';
+			$this->data['link_to_customer'] = '';
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+	</file>		
+
+<file name="catalog/model/affiliate/affiliate.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$mail->send();]]></search>
+			<add><![CDATA[if(!$this->config->get('account_combine_status') || !$this->config->get('account_combine_affiliate_autoapprove')) $mail->send();//+mod by yp]]></add>
+		</operation>		
+		<operation error="log">
+			<search position="after"><![CDATA[function getAffiliateByCode]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if($this->config->get('account_combine_status') && !$this->config->get('account_combine_allow_own_aff')) { 
+			$customer_id = $this->customer->getId();
+			if($customer_id) {
+				$res = $this->db->query("SELECT " .  DB_PREFIX . "affiliate.affiliate_id FROM " .  DB_PREFIX . "affiliate,  " .  DB_PREFIX . "accc_customer_affiliate WHERE " .  DB_PREFIX . "affiliate.code = '" . $this->db->escape($code) . "' AND " .  DB_PREFIX . "affiliate.affiliate_id = " .  DB_PREFIX . "accc_customer_affiliate.affiliate_id AND " .  DB_PREFIX . "accc_customer_affiliate.customer_id = '" . (int) $customer_id . "'");
+				if($res->num_rows > 0) return array();
+			}					
+		}
+		//+mod by yp end
+]]></add>
+		</operation>
+		</file>
+	<file name="catalog/view/theme/*/template/account/register.tpl">
+		<operation error="log">
+			<search position="before"><![CDATA[if ($text_agree)]]></search>
+			<add><![CDATA[
+<!--<?php /* //+mod by yp start */	
+	if($show_affiliate_section) { ?>
+    <div class="buttons">
+      <div class="left">
+        <?php if ($accc_create_affiliate_account) { ?>
+        <input type="checkbox" name="accc_create_affiliate_account" value="1" checked="checked" id="accc_create_account_checkbox" />
+        <?php } else { ?>
+        <input type="checkbox" name="accc_create_affiliate_account" value="1" id="accc_create_account_checkbox" />
+        <?php } ?> <?php echo $text_affiliate_checkbox_confirm; ?>        
+      </div>
+	</div>
+    <h2 id="accc_aff_info"><?php echo $text_affiliate_information; ?></h2>
+    <div class="content" id="accc_aff_data">
+      <table class="form">
+        <tbody>
+		  <tr>
+			<td><?php echo $entry_website; ?></td>
+			<td><input type="text" name="website" value="<?php echo $website; ?>" /></td>
+		  </tr>		
+          <tr>
+            <td><?php echo $entry_tax; ?></td>
+            <td><input type="text" name="tax" value="<?php echo $tax; ?>" /></td>
+          </tr>
+          <tr>
+            <td><?php echo $entry_payment; ?></td>
+            <td><?php if ($payment == 'cheque') { ?>
+              <input type="radio" name="payment" value="cheque" id="cheque" checked="checked" />
+              <?php } else { ?>
+              <input type="radio" name="payment" value="cheque" id="cheque" />
+              <?php } ?>
+              <label for="cheque"><?php echo $text_cheque; ?></label>
+              <?php if ($payment == 'paypal') { ?>
+              <input type="radio" name="payment" value="paypal" id="paypal" checked="checked" />
+              <?php } else { ?>
+              <input type="radio" name="payment" value="paypal" id="paypal" />
+              <?php } ?>
+              <label for="paypal"><?php echo $text_paypal; ?></label>
+              <?php if ($payment == 'bank') { ?>
+              <input type="radio" name="payment" value="bank" id="bank" checked="checked" />
+              <?php } else { ?>
+              <input type="radio" name="payment" value="bank" id="bank" />
+              <?php } ?>
+              <label for="bank"><?php echo $text_bank; ?></label></td>
+          </tr>
+        </tbody>
+        <tbody id="payment-cheque" class="payment">
+          <tr>
+            <td><?php echo $entry_cheque; ?></td>
+            <td><input type="text" name="cheque" value="<?php echo $cheque; ?>" /></td>
+          </tr>
+        </tbody>
+        <tbody class="payment" id="payment-paypal">
+          <tr>
+            <td><?php echo $entry_paypal; ?></td>
+            <td><input type="text" name="paypal" value="<?php echo $paypal; ?>" /></td>
+          </tr>
+        </tbody>
+        <tbody id="payment-bank" class="payment">
+          <tr>
+            <td><?php echo $entry_bank_name; ?></td>
+            <td><input type="text" name="bank_name" value="<?php echo $bank_name; ?>" /></td>
+          </tr>
+          <tr>
+            <td><?php echo $entry_bank_branch_number; ?></td>
+            <td><input type="text" name="bank_branch_number" value="<?php echo $bank_branch_number; ?>" /></td>
+          </tr>
+          <tr>
+            <td><?php echo $entry_bank_swift_code; ?></td>
+            <td><input type="text" name="bank_swift_code" value="<?php echo $bank_swift_code; ?>" /></td>
+          </tr>
+          <tr>
+            <td><?php echo $entry_bank_account_name; ?></td>
+            <td><input type="text" name="bank_account_name" value="<?php echo $bank_account_name; ?>" /></td>
+          </tr>
+          <tr>
+            <td><?php echo $entry_bank_account_number; ?></td>
+            <td><input type="text" name="bank_account_number" value="<?php echo $bank_account_number; ?>" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+<?php } /* //+mod by yp end */ ?>-->
+]]></add>
+		</operation>
+		<operation error="log">
+			<search position="before"><![CDATA[echo $footer]]></search>
+			<add><![CDATA[
+<?php /* //+mod by yp start */	
+	if($show_affiliate_section) { ?>
+<script type="text/javascript"><!--	
+if($('#accc_create_account_checkbox').is(':checked')) {
+	$('#accc_aff_info').show();
+	$('#accc_aff_data').show();
+} else {
+	$('#accc_aff_info').hide();
+	$('#accc_aff_data').hide();
+
+}
+$('#accc_create_account_checkbox').click(function() {
+	if($(this).is(':checked')) {
+		$('#accc_aff_info').show();
+		$('#accc_aff_data').show();
+	} else {
+		$('#accc_aff_info').hide();
+		$('#accc_aff_data').hide();
+	}
+});
+//--></script>
+<script type="text/javascript"><!--
+$('input[name=\'payment\']').bind('change', function() {
+	$('.payment').hide();
+	
+	$('#payment-' + this.value).show();
+});
+
+$('input[name=\'payment\']:checked').trigger('change');
+//--></script> 
+<?php } /* //+mod by yp end */ ?>
+]]></add>
+		</operation>
+	</file>		
+	<file name="catalog/view/theme/*/template/affiliate/transaction.tpl">
+		<operation error="log">
+			<search position="before"><![CDATA[class="paginat]]></search>
+			<add><![CDATA[	
+<!--<?php
+	//+mod by yp start
+	if($accc_allow_funds_transfer) {?>
+<form method="post" action="<?php echo $action_funds_transfer;?>" id="funds_transfer_form">	
+<table class="form">
+<tr>
+	<td><?php echo $entry_funds_transfer_input;?></td>
+	<td><?php echo $symbol_left;?><input type="text" name="amount" id="funds_transfer_amount" size="6" /><?php echo $symbol_right;?>
+		<div id="funds_transfer_message" class="help"></div>
+	</td>
+</tr>
+<tr>
+<td colspan="2"><div class="buttons"><div class="left"><a id="funds_transfer_submit" class="button"><span><?php echo $button_funds_transfer;?></span></a></div></div>
+</td>
+</tr>
+</table>
+</form>
+<?php }
+	//+mod by yp end
+?>-->	
+			
+]]></add>
+		</operation>
+		<operation error="log">
+			<search position="before"><![CDATA[echo $footer]]></search>
+			<add><![CDATA[	
+<?php
+	//+mod by yp start
+	if($accc_allow_funds_transfer) {?>
+<script type="text/javascript">
+<!--
+$(document).ready(function() {
+	var _use_multiplier = <?php echo ($use_multiplier ? 'true' : 'false');?>;
+	var _balance = <?php echo $balance_raw;?>;
+	var _error_message = '<?php echo $error_invalid_transfer_amount_js;?>';
+	var _credit_message = '<?php echo $credit_amount_message;?>';	
+	var _multiplier = <?php echo $transfer_multiplier;?>;
+
+	$('#funds_transfer_amount').bind("change blur keyup mouseup", function() {
+		var _v = $(this).val();
+		if(_v.length < 1) {
+			$('#funds_transfer_message').html('');
+			return;
+		}
+		if(!/^\d+(?:\.\d+)?$/.test(_v) || (parseFloat(_v) - _balance) > 0.005) {
+			$('#funds_transfer_message').html('<span style="color:#f00;font-size:bold;">'+_error_message+'</span>');
+			return;
+		}
+		if(_use_multiplier) {
+			var _msg = _credit_message.replace('%s', '<?php echo $symbol_left;?>'+(Math.round(parseFloat(_v) * _multiplier * 100) * 0.01)+'<?php echo $symbol_right;?>');
+			$('#funds_transfer_message').html(_msg);
+			return;
+		}
+		$('#funds_transfer_message').html('');
+	});
+	
+	$('#funds_transfer_submit').click(function() {
+		var _v = $('#funds_transfer_amount').val();
+		if(!/^\d+(?:\.\d+)?$/.test(_v) || (parseFloat(_v) - _balance) > 0.005) {
+			alert(_error_message);
+			return;
+		}
+		$('#funds_transfer_form').submit();	
+	});
+});
+//-->
+</script>
+<?php }
+	//+mod by yp end
+?>			
+]]></add>
+		</operation>
+</file>
+	<file name="catalog/view/theme/*/template/module/account.tpl">
+		<operation error="log">
+			<search position="before"><![CDATA[</ul>]]></search>
+			<add><![CDATA[
+	  <?php //+mod by yp start
+		if ($text_link_to_affiliate) { ?>
+	  <li><a href="<?php echo $link_to_affiliate; ?>"><?php echo $text_link_to_affiliate; ?></a></li>
+	  <?php }
+		//+mod by yp end
+	  ?>
+]]></add>
+		</operation>
+</file>		
+	<file name="catalog/view/theme/*/template/module/affiliate.tpl">
+		<operation error="log">
+			<search position="before"><![CDATA[</ul>]]></search>
+			<add><![CDATA[
+	  <?php //+mod by yp start
+		if ($text_link_to_customer) { ?>
+	  <li><a href="<?php echo $link_to_customer; ?>"><?php echo $text_link_to_customer; ?></a></li>
+	  <?php }
+		//+mod by yp end
+	  ?>	  
+]]></add>
+		</operation>
+	</file>	
+<file name="system/library/affiliate.php">
+		<operation>
+			<search position="replace"><![CDATA[function login($email, $password) {]]></search>
+			<add><![CDATA[function login($email, $password, $customer_id=false) {//+mod by yp ]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[function login]]></search>
+			<add><![CDATA[
+		//+mod by yp start
+		if(!$email && !$password && !$customer_id) return false;
+		if($customer_id !== false && preg_match("/^\d+$/", $customer_id)) {
+			$affiliate_query = $this->db->query("SELECT " . DB_PREFIX . "affiliate.* FROM " . DB_PREFIX . "affiliate, " . DB_PREFIX . "accc_customer_affiliate WHERE " . DB_PREFIX . "accc_customer_affiliate.affiliate_id=" . DB_PREFIX . "affiliate.affiliate_id AND " . DB_PREFIX . "accc_customer_affiliate.customer_id = '" . (int) $customer_id . "' AND " . DB_PREFIX . "affiliate.status = '1' AND " . DB_PREFIX . "affiliate.approved = '1' LIMIT 1");
+		} else {
+		//+mod by yp end
+]]></add>
+		</operation>
+		<operation>
+			<search position="before" index="2"><![CDATA[if ($affiliate_query->num_rows) {]]></search>
+			<add><![CDATA[
+}//+mod by yp
+]]></add>
+		</operation>		
+	</file>
+<file name="system/library/customer.php">
+		<operation error="log">
+			<search position="before" index="2"><![CDATA[if ($customer_query->num_rows) {]]></search>
+			<add><![CDATA[
+//+mod by yp start
+if ($this->config->get('account_combine_status') && !$customer_query->num_rows) {
+	$_accc_res = $this->db->query("SELECT " . DB_PREFIX . "accc_customer_affiliate.customer_id, " . DB_PREFIX . "accc_customer_affiliate.affiliate_id FROM " . DB_PREFIX . "affiliate LEFT JOIN " . DB_PREFIX . "accc_customer_affiliate ON " . DB_PREFIX . "accc_customer_affiliate.affiliate_id=" . DB_PREFIX . "affiliate.affiliate_id WHERE " . DB_PREFIX . "affiliate.email = '" . $this->db->escape($email) . "' AND " . (VERSION >= '1.5.4' ? "(" . DB_PREFIX . "affiliate.password = SHA1(CONCAT(" . DB_PREFIX . "affiliate.salt, SHA1(CONCAT(" . DB_PREFIX . "affiliate.salt, SHA1('" . $this->db->escape($password) . "'))))) OR " . DB_PREFIX . "affiliate.password = '" . $this->db->escape(md5($password)) . "')" : DB_PREFIX . "affiliate.password = '" . $this->db->escape(md5($password)) . "'") . " AND " . DB_PREFIX . "affiliate.status = '1' AND " . DB_PREFIX . "affiliate.approved = '1' AND " . DB_PREFIX . "accc_customer_affiliate.affiliate_id IS NOT NULL");
+	if($_accc_res->num_rows > 0) {
+		$accc_aff = $_accc_res->row['affiliate_id'];
+		$_q = "SELECT * FROM " . DB_PREFIX . "customer WHERE customer_id='" . ((int) $_accc_res->row['customer_id']) . "' AND status = '1'";
+		if(VERSION >= '1.5.3' || $this->config->get('config_customer_approval')) $_q .= " AND approved = '1'";
+		$customer_query = $this->db->query($_q);
+	}
+}
+//+mod by yp end
+]]></add>
+		</operation>
+	</file>
+</modification>	

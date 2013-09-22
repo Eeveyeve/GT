@@ -1,0 +1,253 @@
+<!-- Created using vQModerator's XML Generator by The Wizard of Osch for http://www.crystalcopy.nl //-->
+<!-- (Based on vQmod XML Generator by UKSB - http://www.opencart-extensions.co.uk) //-->
+<modification>
+	<id><![CDATA[Banner Image Language Support]]></id>
+	<version><![CDATA[v1.4]]></version>
+	<vqmver><![CDATA[2.1.7]]></vqmver>
+	<author><![CDATA[The Wizard of Osch, for www.CrystalCopy.nl]]></author>
+	<file name="asth24gf34m03f/controller/design/banner.php" error="abort">
+		<operation>
+			<search position="after"><![CDATA[$this->data['button_delete'] = $this->language->get('button_delete');]]></search>
+			<add><![CDATA[ 
+// BOF - Zappo - Banner Language - Check for (Un-)Install
+		if (isset($this->request->get['install'])) {
+			$this->model_design_banner->install();
+			$this->session->data['success'] = 'Banner Languages should now be installed!';
+		} elseif (isset($this->request->get['uninstall'])) {
+			$this->model_design_banner->uninstall();
+			$this->error['warning'] = 'Banner Languages should now be un-installed! REMOVE vQMod or Modifications NOW!!!';
+		}
+// EOF - Zappo - Banner Language - Check for (Un-)Install
+]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[$banner_images = $this->model_design_banner->getBannerImages($this->request->get['banner_id']);]]></search>
+			<add><![CDATA[// BOF - Zappo - Banner Language - Added Language for Banner Images
+			if ($banner_images === false) {
+				if (isset($this->request->get['banner_id'])) $this->redirect($this->url->link('design/banner/update', 'token=' . $this->session->data['token'] . '&banner_id=' . $this->request->get['banner_id'], 'SSL'));
+				else $this->redirect($this->url->link('design/banner/insert', 'token=' . $this->session->data['token'], 'SSL'));
+			}
+// EOF - Zappo - Banner Language - Added Language for Banner Images
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[foreach ($banner_images as $banner_image) {]]></search>
+			<add><![CDATA[foreach ($banner_images as $banner_id => $banner_lang) {
+			foreach ($banner_lang as $language_id => $banner_image) {]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$this->data['banner_images'][] = array(]]></search>
+			<add><![CDATA[$this->data['banner_images'][$banner_id][$language_id] = array(]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA['banner_image_description' => $banner_image['banner_image_description']]]></search>
+			<add><![CDATA['title'                    => $banner_image['title']]]></add>
+		</operation>
+		<operation>
+			<search position="after" offset="1"><![CDATA['thumb'                    => $this->model_tool_image->resize($image, 100, 100)]]></search>
+			<add><![CDATA[// BOF - Zappo - Banner Language - ONE LINE - Added Language for Banner Images
+			}]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[foreach ($banner_image['banner_image_description'] as $language_id => $banner_image_description) {]]></search>
+			<add><![CDATA[foreach ($banner_image as $language_id => $banner_image_description) {]]></add>
+		</operation>
+	</file>
+	<file name="asth24gf34m03f/model/design/banner.php" error="abort">
+		<operation>
+			<search position="after" index="2"><![CDATA[if (isset($data['banner_image'])) {]]></search>
+			<add><![CDATA[// BOF - Zappo - Banner Language - ONE LINE - Reverse Banner Images, to get correct sort-order
+			$data['banner_image'] = array_reverse($data['banner_image']);
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[banner_id = '" . (int)$banner_id . "', link = '" .  $this->db->escape($banner_image['link']) . "', image = '" .  $this->db->escape($banner_image['image']) . "']]></search>
+			<add><![CDATA[banner_id = '" . (int)$banner_id . "']]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[foreach ($banner_image['banner_image_description'] as $language_id => $banner_image_description) {]]></search>
+			<add><![CDATA[foreach ($banner_image as $language_id => $banner_image_description) {]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[title = '" .  $this->db->escape($banner_image_description['title']) . "']]></search>
+			<add><![CDATA[title = '" .  $this->db->escape($banner_image_description['title']) . "', link = '" .  $this->db->escape($banner_image_description['link']) . "', image = '" .  $this->db->escape($banner_image_description['image']) . "']]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[SELECT * FROM " . DB_PREFIX . "banner_image WHERE banner_id = '" . (int)$banner_id . "']]></search>
+			<add><![CDATA[SELECT bi.* FROM " . DB_PREFIX . "banner_image bi LEFT JOIN " . DB_PREFIX . "banner_image_description bid ON (bi.banner_image_id = bid.banner_image_id) WHERE bid.banner_id = '" . (int)$banner_id . "' AND bid.language_id = '" . $this->config->get('config_language_id') . "' ORDER BY bid.title]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[foreach ($banner_image_description_query->rows as $banner_image_description) {]]></search>
+			<add><![CDATA[// BOF - Zappo - Banner Language - Added Language for Banner Images
+			if (!isset($banner_image_description_query->row['image']) || isset($banner_image['image'])) {
+				$this->install();
+				return false;
+			}]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA['title' => $banner_image_description['title']]]></search>
+			<add><![CDATA['title' => $banner_image_description['title'], 'link' => $banner_image_description['link'], 'image' => $banner_image_description['image']]]></add>
+		</operation>
+		<operation>
+			<search position="replace" offset="4"><![CDATA[$banner_image_data[] = array(]]></search>
+			<add><![CDATA[$banner_image_data[] =  $banner_image_description_data;]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[public function getTotalBanners() {]]></search>
+			<add><![CDATA[// BOF - Zappo - Banner Language - Check if Banner Image Language is (Correctly-) Installed
+	public function install() {
+		$set_l = $set_i = $lang_id = false;
+		$QryCheck = $this->db->query("SHOW TABLES");
+		foreach ($QryCheck->rows as $Field) $Fields[] = $Field['Tables_in_'.DB_DATABASE]; // Build array of all table columns
+		if (!in_array(DB_PREFIX . 'banner_image_description', $Fields)) {
+			$this->db->query("CREATE TABLE " . DB_PREFIX . "banner_image_description (`banner_image_id` int(11) NOT NULL,`language_id` int(11) NOT NULL, `banner_id` int(11) NOT NULL, `title` varchar(64) COLLATE utf8_bin NOT NULL, PRIMARY KEY (`banner_image_id`,`language_id`)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin");
+		}
+		$banner_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner");
+		foreach ($banner_query->rows as $banner) {
+			$ban = $banner['banner_id'];
+			$banner_image_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner_image WHERE banner_id = '" . (int)$ban . "'");
+			foreach ($banner_image_query->rows as $banner_image) {
+				$banner_images = $banner_image;
+				$data = array();
+				$banner_image_description_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner_image_description WHERE banner_image_id = '" . (int)$banner_image['banner_image_id'] . "' AND banner_id = '" . (int)$ban . "'");
+				foreach ($banner_image_description_query->rows as $banner_image_description) {
+					$this->db->query("DELETE FROM " . DB_PREFIX . "banner_image_description WHERE banner_image_id = '" . (int)$banner_image['banner_image_id'] . "' AND banner_id = '" . (int)$ban . "'");
+					$data[$banner_image_description['language_id']] = array('title' => $banner_image_description['title']);
+					$link = $image = '';
+					if (isset($banner_image['link'])) $link = $banner_image['link'];
+					elseif (isset($banner_image_description['link'])) $link = $banner_image_description['link'];
+					$data[$banner_image_description['language_id']]['link'] = $link;
+					if (isset($banner_image['image'])) $image = $banner_image['image'];
+					elseif (isset($banner_image_description['image'])) $image = $banner_image_description['image'];
+					$data[$banner_image_description['language_id']]['image'] = $image;
+					$lang_id = $banner_image_description['language_id'];
+					if (!isset($banner_image_description['link']) && !$set_l) {
+						$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description ADD `link` varchar(255) COLLATE utf8_bin NOT NULL");
+						$set_l = true;
+					}
+					if (!isset($banner_image_description['image']) && !$set_i) {
+						$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description ADD `image` varchar(255) COLLATE utf8_bin NOT NULL");
+						$set_i = true;
+					}
+				}
+				if (!$data && isset($banner_image['lanuage_id']) && isset($banner_image['title']) && isset($banner_image['link']) && isset($banner_image['image'])) {
+					$data[$banner_image['language_id']] = array('title' => $banner_image['title'], 'link' => $banner_image['link'], 'image' => $banner_image['image']);
+					$lang_id = $banner_image['language_id'];
+				}
+				if ($data) {
+					$language_query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language");
+					foreach ($language_query->rows as $language) if (!isset($data[$language['language_id']])) $data[$language['language_id']] = $data[$lang_id];
+					foreach ($data as $language_id => $banner_data) {
+						$this->db->query("INSERT INTO " . DB_PREFIX . "banner_image_description SET banner_image_id = '" . (int)$banner_image['banner_image_id'] . "', language_id = '" . (int)$language_id . "', banner_id = '" . (int)$ban . "', title = '" .  $this->db->escape($banner_data['title']) . "', link = '" .  $this->db->escape($banner_data['link']) . "', image = '" .  $this->db->escape($banner_data['image']) . "'");
+					}
+				}
+			}
+		}
+		if (!$banner_query->num_rows) {
+			$QryCheck = $this->db->query("SHOW COLUMNS FROM " . DB_PREFIX . "banner_image_description");
+			foreach ($QryCheck->rows as $Field) $Fields[] = $Field['Field']; // Build array of all table columns
+			if(!in_array('image', $Fields)) { // Database entry not found...
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description ADD `image` varchar(255) COLLATE utf8_bin NOT NULL");
+				$banner_images['image'] = 1;
+			}
+			if(!in_array('link', $Fields)) { // Database entry not found...
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description ADD `link` varchar(255) COLLATE utf8_bin NOT NULL");
+				$banner_images['link'] = 1;
+			}
+		}
+		if (isset($banner_images['title'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image DROP `title`");
+		if (isset($banner_images['language_id'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image DROP `language_id`");
+		if (isset($banner_images['link'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image DROP `link`");
+		if (isset($banner_images['image'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image DROP `image`");
+	}
+// EOF - Zappo - Banner Language - Check if Banner Image Language is (Correctly-) Installed
+// BOF - Zappo - Banner Language - Un-Install Banner Image Language
+	public function uninstall() {
+		$set_l = $set_i = false;
+		$banner_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner");
+		foreach ($banner_query->rows as $banner) {
+			$ban = $banner['banner_id'];
+			$banner_image_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner_image WHERE banner_id = '" . (int)$ban . "'");
+			if (!isset($banner_image_query->row['link']) && !$set_l) {
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image  ADD `link` varchar(255) COLLATE utf8_bin NOT NULL");
+				$set_l = true;
+			} if (!isset($banner_image_query->row['image']) && !$set_i) {
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image  ADD `image` varchar(255) COLLATE utf8_bin NOT NULL");
+				$set_i = true;
+			}
+			foreach ($banner_image_query->rows as $banner_image) {
+				$data = array('banner_image_description' => array());
+				$banner_image_description_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "banner_image_description WHERE banner_image_id = '" . (int)$banner_image['banner_image_id'] . "' AND banner_id = '" . (int)$ban . "'");
+				foreach ($banner_image_description_query->rows as $banner_image_description) {
+					$this->db->query("DELETE FROM " . DB_PREFIX . "banner_image_description WHERE banner_image_id = '" . (int)$banner_image['banner_image_id'] . "' AND banner_id = '" . (int)$ban . "'");
+					$data['banner_image_description'][$banner_image_description['language_id']] = array('title' => $banner_image_description['title']);
+					$data['link'] = $data['image'] = '';
+					if (isset($banner_image['link']) && $banner_image['link']) $data['link'] = $banner_image['link'];
+					elseif (isset($banner_image_description['link'])) $data['link'] = $banner_image_description['link'];
+					if (isset($banner_image['image']) && $banner_image['image']) $data['image'] = $banner_image['image'];
+					elseif (isset($banner_image_description['image'])) $data['image'] = $banner_image_description['image'];
+				}
+				if ($data) {
+					$this->db->query("UPDATE " . DB_PREFIX . "banner_image SET link = '" .  $this->db->escape($data['link']) . "', image = '" .  $this->db->escape($data['image']) . "' WHERE banner_image_id = '" . (int)$banner_image['banner_image_id'] . "' AND banner_id = '" . (int)$ban . "'");
+					foreach ($data['banner_image_description'] as $language_id => $banner_data) {
+						$this->db->query("INSERT INTO " . DB_PREFIX . "banner_image_description SET banner_image_id = '" . (int)$banner_image['banner_image_id'] . "', language_id = '" . (int)$language_id . "', banner_id = '" . (int)$ban . "', title = '" .  $this->db->escape($banner_data['title']) . "'");
+					}
+				}
+			}
+		}
+		if (!isset($banner_image_description)) {
+			$banner_image_description = array();
+			$QryCheck = $this->db->query("SHOW COLUMNS FROM " . DB_PREFIX . "banner_image");
+			foreach ($QryCheck->rows as $Field) $Fields[] = $Field['Field']; // Build array of all table columns
+			if(!in_array('image', $Fields)) { // Database entry not found...
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image  ADD `image` varchar(255) COLLATE utf8_bin NOT NULL");
+				$banner_image_description['image'] = 1;
+			}
+			if(!in_array('link', $Fields)) { // Database entry not found...
+				$this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image  ADD `link` varchar(255) COLLATE utf8_bin NOT NULL");
+				$banner_image_description['link'] = 1;
+			}
+		}
+		if (isset($banner_image_description['link'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description DROP `link`");
+		if (isset($banner_image_description['image'])) $this->db->query("ALTER TABLE " . DB_PREFIX . "banner_image_description DROP `image`");
+	}
+// EOF - Zappo - Banner Language - Un-Install Banner Image Language
+]]></add>
+		</operation>
+	</file>
+	<file name="asth24gf34m03f/view/template/design/banner_form.tpl" error="abort">
+		<operation>
+			<search position="replace"><![CDATA[[banner_image_description]]]></search>
+			<add><![CDATA[]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[['banner_image_description']]]></search>
+			<add><![CDATA[]]></add>
+		</operation>
+		<operation>
+			<search position="replace" offset="4"><![CDATA[<td class="left"><input type="text" name="banner_image[<?php echo $image_row; ?>][link]" value="<?php echo $banner_image['link']; ?>" /></td>]]></search>
+			<add><![CDATA[<?php // BOF - Zappo - Banner Language - Added Language for Banner Images ?>
+              <td class="left"><?php foreach ($languages as $language) { ?><input type="text" name="banner_image[<?php echo $image_row; ?>][<?php echo $language['language_id']; ?>][link]" value="<?php echo $banner_image[$language['language_id']]['link']; ?>" /><img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" /><br /><?php } ?></td>
+              <td class="left"><?php foreach ($languages as $language) { ?><div class="image"><img src="<?php echo $banner_image[$language['language_id']]['thumb']; ?>" alt="" id="thumb<?php echo $image_row . '_' . $language['language_id']; ?>" />
+                  <input type="hidden" name="banner_image[<?php echo $image_row; ?>][<?php echo $language['language_id']; ?>][image]" value="<?php echo $banner_image[$language['language_id']]['image']; ?>" id="image<?php echo $image_row . '_' . $language['language_id']; ?>"  />
+                  <img src="view/image/flags/<?php echo $language['image']; ?>" title="<?php echo $language['name']; ?>" /><br />
+                  <a onclick="image_upload('image<?php echo $image_row . '_' . $language['language_id']; ?>', 'thumb<?php echo $image_row . '_' . $language['language_id']; ?>');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb<?php echo $image_row . '_' . $language['language_id']; ?>').attr('src', '<?php echo $no_image; ?>'); $('#image<?php echo $image_row . '_' . $language['language_id']; ?>').attr('value', '');"><?php echo $text_clear; ?></a></div><?php } ?></td>
+<?php // EOF - Zappo - Banner Language - Added Language for Banner Images ?>]]></add>
+		</operation>
+		<operation>
+			<search position="replace" offset="1"><![CDATA[html += '<td class="left"><input type="text" name="banner_image[' + image_row + '][link]" value="" /></td>';]]></search>
+			<add><![CDATA[<?php // BOF - Zappo - Banner Language - Added Language for Banner Images ?>
+    html += '<td class="left">';
+	<?php foreach ($languages as $language) { ?>
+	html += '<input type="text" name="banner_image[' + image_row + '][<?php echo $language['language_id']; ?>][link]" value="" />';
+    <?php } ?>
+	html += '</td>';
+    html += '<td class="left">';
+	<?php foreach ($languages as $language) { ?>
+	html += '<div class="image"><img src="<?php echo $no_image; ?>" alt="" id="thumb' + image_row + '_<?php echo $language['language_id']; ?>" /><input type="hidden" name="banner_image[' + image_row + '][<?php echo $language['language_id']; ?>][image]" value="" id="image' + image_row + '_<?php echo $language['language_id']; ?>" /><br /><a onclick="image_upload(\'image' + image_row + '_<?php echo $language['language_id']; ?>\', \'thumb' + image_row + '_<?php echo $language['language_id']; ?>\');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$(\'#thumb' + image_row + '_<?php echo $language['language_id']; ?>\').attr(\'src\', \'<?php echo $no_image; ?>\'); $(\'#image' + image_row + '_<?php echo $language['language_id']; ?>\').attr(\'value\', \'\');"><?php echo $text_clear; ?></a></div>';
+    <?php } ?>
+	html += '</td>';
+<?php // EOF - Zappo - Banner Language - Added Language for Banner Images ?>]]></add>
+		</operation>
+	</file>
+</modification>

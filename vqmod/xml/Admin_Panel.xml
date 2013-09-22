@@ -1,0 +1,65 @@
+<modification>
+<id>Admin panel hide data</id>
+<version>1.0.0</version>
+<vqmver>2.X</vqmver>
+<author>Vojtech Gintner</author>      
+
+
+<file name="asth24gf34m03f/view/template/catalog/product_form.tpl">
+ <operation>                
+  <search position="before" offset="1"><![CDATA[
+  <td><?php echo $entry_sku; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  <!--
+  ]]></add>                        
+ </operation>
+ <operation>                
+  <search position="after" offset="2"><![CDATA[
+  <td><?php echo $entry_location; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  -->
+  ]]></add>                        
+ </operation>
+ 
+ <operation>                
+  <search position="before" offset="1"><![CDATA[
+  <td><?php echo $entry_dimension; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  <!--
+  ]]></add>                        
+ </operation>
+ <operation>                
+  <search position="after" offset="10"><![CDATA[
+  <td><?php echo $entry_weight_class; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  -->
+  ]]></add>                        
+ </operation>
+ 
+ <operation>                
+  <search position="before" offset="1"><![CDATA[
+  <td><?php echo $entry_tax_class; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  ]]></add>                        
+ </operation>
+ <operation>                
+  <search position="after" offset="11"><![CDATA[
+  <td><?php echo $entry_tax_class; ?></td>
+  ]]></search>
+                                  
+  <add><![CDATA[
+  ]]></add>                        
+ </operation>
+</file>
+  
+</modification>

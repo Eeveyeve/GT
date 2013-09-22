@@ -1,0 +1,30 @@
+<modification>
+	<id>A module to show also bought products</id>
+	<version>1.5.2</version>
+	<vqmver>1.2.3</vqmver>
+	<author>prof.web.coding@gmail.com</author>
+
+  <file name="catalog/model/catalog/product.php">
+    <operation>
+			<search position="before"><![CDATA[
+			public function getLatestProducts($limit) {
+			]]></search>
+			<add><![CDATA[
+	public function getAlsoBoughtProducts($productId, $limit) {
+	// no caching, since we receive many orders per day it is unlikely that caching would improve performance
+		$product_data = array();
+
+		if (!$product_data) { 
+			$query = $this->db->query("SELECT p.product_id FROM " . DB_PREFIX . "order_product opa, " . DB_PREFIX . "order_product opb, `" . DB_PREFIX . "order` o, " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id) WHERE opa.product_id=$productId and opa.order_id=opb.order_id AND opb.product_id!=$productId and opb.product_id = p.product_id and opb.order_id = o.order_id and p.status = '1' /*AND p.date_available <= NOW()*/ AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' GROUP BY p.product_id ORDER BY o.date_added DESC LIMIT " . (int)$limit);
+		 	 
+			foreach ($query->rows as $result) {
+				$product_data[$result['product_id']] = $this->getProduct($result['product_id']);
+			}
+		}
+		
+		return $product_data;
+	}
+			]]></add>
+		</operation>
+  </file>
+</modification>

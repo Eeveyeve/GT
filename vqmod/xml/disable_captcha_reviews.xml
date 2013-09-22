@@ -1,0 +1,24 @@
+<modification>
+	<id><![CDATA[Disable Captcha For Reviews]]></id>
+	<version><![CDATA[1.5.2.1]]></version>
+	<vqmver><![CDATA[2.1.5]]></vqmver>
+	<author><![CDATA[http://go4mart.com]]></author>
+	<file name="catalog/controller/product/product.php">
+		<operation>
+			<search position="before"><![CDATA[if (empty($this->session->data['captcha']) || ($this->session->data['captcha'] != $this->request->post['captcha'])) {]]></search>
+			<add><![CDATA[/*]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[if (!isset($json['error'])) { ]]></search>
+			<add><![CDATA[*/]]></add>
+		</operation>
+        <operation>
+			<search position="before"><![CDATA[public function captcha() { ]]></search>
+			<add><![CDATA[/*]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[public function upload() { ]]></search>
+			<add><![CDATA[*/]]></add>
+		</operation>
+	</file>
+</modification>

@@ -1,0 +1,170 @@
+<modification>
+	<id><![CDATA[new positions]]></id>
+	<version><![CDATA[1.0.1]]></version>
+	<vqmver><![CDATA[2.1.7]]></vqmver>
+	<author><![CDATA[gintnervojtech@gmail.com]]></author>
+  	<file name="catalog/controller/common/home.php">
+		<operation>
+			<search position="after"><![CDATA[
+      $this->children = array(
+      ]]></search>
+			<add><![CDATA[
+			'common/position_slider',
+			'common/position_banner',      
+      ]]></add>
+		</operation>
+	  </file>
+    <file name="catalog/controller/product/product.php">
+		<operation>
+			<search position="after"><![CDATA[
+      $this->children = array(
+      ]]></search>
+			<add><![CDATA[
+			'common/position_slider',
+			'common/position_banner',      
+      ]]></add>
+		</operation>
+	  </file>
+  
+  
+  
+  
+  
+  
+  <file name="asth24gf34m03f/language/english/module/uberslider.php">
+		<operation>
+			<search position="after"><![CDATA[
+      <?php
+      ]]></search>
+			<add><![CDATA[
+$_['text_position_slider'] = 'Position Slider';      
+]]></add>
+		</operation>
+	</file>
+  <file name="asth24gf34m03f/controller/module/uberslider.php">
+		<operation>
+			<search position="after"><![CDATA[
+      $this->language->load
+      ]]></search>
+			<add><![CDATA[
+$this->data['text_position_slider'] = $this->language->get('text_position_slider');      
+]]></add>
+		</operation>
+	</file>
+	<file name="asth24gf34m03f/view/template/module/uberslider.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+      <?php if ($module['position'] == 'content_top') { ?>
+      ]]></search>
+			<add><![CDATA[
+                  <?php if ($module['position'] == 'position_slider') { ?>
+                  <option value="position_slider" selected="selected"><?php echo $text_position_slider; ?></option>
+                  <?php } else { ?>
+                  <option value="position_slider"><?php echo $text_position_slider; ?></option>
+                  <?php } ?>      
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+	html += '      <option value="content_top"><?php echo $text_content_top; ?></option>';
+      ]]></search>
+			<add><![CDATA[
+	html += '      <option value="position_slider"><?php echo $text_position_slider; ?></option>';      
+]]></add>
+		</operation>
+	</file>
+  
+  
+  
+  
+  
+  <file name="asth24gf34m03f/language/english/module/banner.php">
+		<operation>
+			<search position="after"><![CDATA[
+      <?php
+      ]]></search>
+			<add><![CDATA[
+$_['text_position_banner'] = 'Position Banner';      
+]]></add>
+		</operation>
+	</file>
+  <file name="asth24gf34m03f/controller/module/banner.php">
+		<operation>
+			<search position="after"><![CDATA[
+      $this->language->load
+      ]]></search>
+			<add><![CDATA[
+$this->data['text_position_banner'] = $this->language->get('text_position_banner');      
+]]></add>
+		</operation>
+	</file>
+	<file name="asth24gf34m03f/view/template/module/banner.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+      <?php if ($module['position'] == 'content_top') { ?>
+      ]]></search>
+			<add><![CDATA[
+                  <?php if ($module['position'] == 'position_banner') { ?>
+                  <option value="position_banner" selected="selected"><?php echo $text_position_banner; ?></option>
+                  <?php } else { ?>
+                  <option value="position_banner"><?php echo $text_position_banner; ?></option>
+                  <?php } ?>      
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+	html += '      <option value="content_top"><?php echo $text_content_top; ?></option>';
+      ]]></search>
+			<add><![CDATA[
+	html += '      <option value="position_banner"><?php echo $text_position_banner; ?></option>';      
+]]></add>
+		</operation>
+	</file>
+  
+  
+  
+  
+  
+  <file name="asth24gf34m03f/language/english/module/content.php">
+		<operation>
+			<search position="after"><![CDATA[
+      <?php
+      ]]></search>
+			<add><![CDATA[
+$_['text_position_banner'] = 'Position Banner';      
+]]></add>
+		</operation>
+	</file>
+  <file name="asth24gf34m03f/controller/module/content.php">
+		<operation>
+			<search position="after"><![CDATA[
+      $this->language->load
+      ]]></search>
+			<add><![CDATA[
+$this->data['text_position_banner'] = $this->language->get('text_position_banner');      
+]]></add>
+		</operation>
+	</file>
+	<file name="asth24gf34m03f/view/template/module/content.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+      <?php if ($module['position'] == 'content_top') { ?>
+      ]]></search>
+			<add><![CDATA[
+                  <?php if ($module['position'] == 'position_banner') { ?>
+                  <option value="position_banner" selected="selected"><?php echo $text_position_banner; ?></option>
+                  <?php } else { ?>
+                  <option value="position_banner"><?php echo $text_position_banner; ?></option>
+                  <?php } ?>                        
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+	html += '        <option value="content_top"><?php echo $text_content_top; ?></option>';
+      ]]></search>
+			<add><![CDATA[
+	html += '        <option value="position_banner"><?php echo $text_position_banner; ?></option>';      
+]]></add>
+		</operation>
+	</file>
+</modification>

@@ -1,0 +1,14 @@
+Sitemap: http://gamingtitans.com/sitemap.xml
+
+User-agent: *
+Disallow: /
+Disallow: /admin/
+Disallow: /asth24gf34m03f/
+Disallow: /index.php/?route=common/home
+Disallow: /download/
+Disallow: /system/
+Disallow: /vqmod/
+Disallow: /cache/
+Disallow: /test/
+Disallow: /currency/
+Disallow: /custom/

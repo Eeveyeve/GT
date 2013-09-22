@@ -1,0 +1,33 @@
+#filter-cat {
+    width: 780px;
+    background: #f1f1f1;
+    padding: 14px 16px 8px 16px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+.filter-block {
+    padding: 2px 0 2px 0;
+    height: 35px;
+}
+.body-block {
+    width: 30%;
+    float: left;
+    margin-right: 10px;
+}
+
+.p-filter {
+    font-size: 12px;
+    margin-left: 10px;
+}
+.p-filter input {
+    width: 40px;
+    padding: 1px;
+    margin-left: 3px;
+    text-align: center;
+}
+#filter-cat .selectboxit-container .selectboxit {
+    width: 200px !important;
+}
+#filter-cat .selectboxit-container .selectboxit-options {
+    min-width: 200px !important;
+}

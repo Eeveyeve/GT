@@ -1,0 +1,128 @@
+<modification>
+<id>Language addition for templates</id>
+<version>1.0.0</version>
+<vqmver>2.X</vqmver>
+<author>Vojtech Gintner</author>
+
+<file name="catalog/language/english/english.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  $_['code']
+  ]]></search>
+                                  
+  <add><![CDATA[
+  $_['date_format_medium']     = 'm/d/Y h:i';
+  $_['date_format_3']          = 'd M Y';
+  ]]></add>                        
+ </operation>
+ <operation>                
+  <search position="replace"><![CDATA[
+  $_['button_cart']           = 'Add to Cart';
+  ]]></search>
+                                  
+  <add><![CDATA[
+  $_['button_cart']           = 'Buy Download';
+  ]]></add>                        
+ </operation>  
+</file>
+
+<file name="catalog/language/english/common/header.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  <?php
+  ]]></search>
+                                  
+  <add><![CDATA[
+$_['text_search_in_store']= 'Search';
+$_['text_catalogue']      = 'PC Games';
+$_['text_community']      = 'Community';
+$_['text_customer_services']= 'Help';
+$_['text_login']          = 'Login / Register';
+$_['text_register']       = 'Register';
+$_['text_about']          = 'About';
+$_['text_mycart']         = 'My Cart';
+  ]]></add>                        
+ </operation>   
+</file>
+
+<file name="catalog/controller/common/header.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  $this->language->load
+  ]]></search>
+                                  
+  <add><![CDATA[
+    $this->data['text_in_my_cart'] = $this->language->get('text_in_my_cart');
+    $this->data['text_search_in_store'] = $this->language->get('text_search_in_store');
+    $this->data['text_catalogue'] = $this->language->get('text_catalogue');
+    $this->data['text_community'] = $this->language->get('text_community');
+    $this->data['text_customer_services'] = $this->language->get('text_customer_services');
+    $this->data['text_login'] = $this->language->get('text_login');
+    $this->data['text_register'] = $this->language->get('text_register');
+    $this->data['text_about'] = $this->language->get('text_about');
+    $this->data['text_mycart'] = $this->language->get('text_mycart');
+    
+    $this->data['link_cart'] = $this->url->link('checkout/cart');;
+  ]]></add>                        
+ </operation> 
+</file>
+
+<file name="catalog/language/english/module/cart.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  <?php
+  ]]></search>
+                                  
+  <add><![CDATA[
+$_['text_in_my_cart']     = 'In my cart';
+  ]]></add>                        
+ </operation>
+ 
+ <operation>                
+  <search position="replace"><![CDATA[
+  $_['text_items']    = '%s item(s) - %s';
+  ]]></search>
+                                  
+  <add><![CDATA[
+$_['text_items']    = '%s item(s)';
+  ]]></add>                        
+ </operation> 
+</file>
+
+<file name="catalog/controller/module/cart.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  $this->language->load
+  ]]></search>
+                                  
+  <add><![CDATA[
+    $this->data['text_in_my_cart'] = $this->language->get('text_in_my_cart');
+  ]]></add>                        
+ </operation> 
+</file>
+
+<file name="catalog/language/english/common/footer.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  $_['text_powered']
+  ]]></search>
+                                  
+  <add><![CDATA[
+$_['text_copyright']      = '&copy; 2013 GamingTitans. Trademarks belong to their respective owners. All rights reserved. ';
+  ]]></add>                        
+ </operation>  
+</file>
+
+<file name="catalog/controller/common/footer.php">
+ <operation>                
+  <search position="after"><![CDATA[
+  $this->language->load
+  ]]></search>
+                                  
+  <add><![CDATA[
+    $this->data['text_copyright'] = $this->language->get('text_copyright');
+  ]]></add>                        
+ </operation> 
+</file>
+  
+</modification>
